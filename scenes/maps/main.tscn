@@ -1,0 +1,149 @@
+[gd_scene load_steps=16 format=2]
+
+[ext_resource path="res://scripts/maps/restart.gd" type="Script" id=1]
+[ext_resource path="res://scripts/maps/main.gd" type="Script" id=2]
+[ext_resource path="res://scripts/Camera2D.gd" type="Script" id=3]
+[ext_resource path="res://scenes/enemys/bullet.tscn" type="PackedScene" id=4]
+[ext_resource path="res://scenes/player/attack.tscn" type="PackedScene" id=5]
+[ext_resource path="res://scenes/enemys/enemy.tscn" type="PackedScene" id=6]
+[ext_resource path="res://images/mushroom_red.png" type="Texture" id=7]
+[ext_resource path="res://images/ground_cake.png" type="Texture" id=8]
+[ext_resource path="res://scenes/pickup/pickup_doublejump.tscn" type="PackedScene" id=9]
+
+[sub_resource type="ConvexPolygonShape2D" id=2]
+points = PoolVector2Array( 384, 0, 384, 32, 352, 96, 32, 96, 0, 32, 0, 0, 32, 0 )
+
+[sub_resource type="ConvexPolygonShape2D" id=5]
+points = PoolVector2Array( 64, 0, 64, 96, 0, 96, 0, 0 )
+
+[sub_resource type="TileSet" id=3]
+0/name = "ground_cake.png 0"
+0/texture = ExtResource( 8 )
+0/tex_offset = Vector2( 0, 0 )
+0/modulate = Color( 1, 1, 1, 1 )
+0/region = Rect2( 0, 0, 384, 96 )
+0/tile_mode = 0
+0/occluder_offset = Vector2( 0, 0 )
+0/navigation_offset = Vector2( 0, 0 )
+0/shape_offset = Vector2( 0, 0 )
+0/shape_transform = Transform2D( 1, 0, 0, 1, 0, 0 )
+0/shape = SubResource( 2 )
+0/shape_one_way = false
+0/shape_one_way_margin = 1.0
+0/shapes = [ {
+"autotile_coord": Vector2( 0, 0 ),
+"one_way": false,
+"one_way_margin": 1.0,
+"shape": SubResource( 2 ),
+"shape_transform": Transform2D( 1, 0, 0, 1, 0, 0 )
+} ]
+0/z_index = 0
+1/name = "mushroom_red.png 1"
+1/texture = ExtResource( 7 )
+1/tex_offset = Vector2( 0, 0 )
+1/modulate = Color( 1, 1, 1, 1 )
+1/region = Rect2( 0, 0, 96, 96 )
+1/tile_mode = 0
+1/occluder_offset = Vector2( 0, 0 )
+1/navigation_offset = Vector2( 0, 0 )
+1/shape_offset = Vector2( 0, 0 )
+1/shape_transform = Transform2D( 1, 0, 0, 1, 0, 0 )
+1/shape = SubResource( 5 )
+1/shape_one_way = false
+1/shape_one_way_margin = 1.0
+1/shapes = [ {
+"autotile_coord": Vector2( 0, 0 ),
+"one_way": false,
+"one_way_margin": 1.0,
+"shape": SubResource( 5 ),
+"shape_transform": Transform2D( 1, 0, 0, 1, 0, 0 )
+} ]
+1/z_index = 0
+
+[sub_resource type="ConvexPolygonShape2D" id=6]
+points = PoolVector2Array( 64, 0, 64, 96, 0, 96, 0, 0, 0, 0 )
+
+[sub_resource type="TileSet" id=7]
+0/name = "mushroom_red.png 0"
+0/texture = ExtResource( 7 )
+0/tex_offset = Vector2( 0, 0 )
+0/modulate = Color( 1, 1, 1, 1 )
+0/region = Rect2( 0, 0, 96, 96 )
+0/tile_mode = 0
+0/occluder_offset = Vector2( 0, 0 )
+0/navigation_offset = Vector2( 0, 0 )
+0/shape_offset = Vector2( 0, 0 )
+0/shape_transform = Transform2D( 1, 0, 0, 1, 0, 0 )
+0/shape = SubResource( 6 )
+0/shape_one_way = false
+0/shape_one_way_margin = 1.0
+0/shapes = [ {
+"autotile_coord": Vector2( 0, 0 ),
+"one_way": false,
+"one_way_margin": 1.0,
+"shape": SubResource( 6 ),
+"shape_transform": Transform2D( 1, 0, 0, 1, 0, 0 )
+} ]
+0/z_index = 0
+
+[sub_resource type="RectangleShape2D" id=4]
+extents = Vector2( 3738.5, 10 )
+
+[node name="main" type="Node2D"]
+position = Vector2( 7, -2 )
+script = ExtResource( 2 )
+
+[node name="Player" parent="." instance=ExtResource( 5 )]
+collision_mask = 1
+
+[node name="bullet" parent="." instance=ExtResource( 4 )]
+
+[node name="Camera2D" type="Camera2D" parent="."]
+current = true
+zoom = Vector2( 5, 5 )
+script = ExtResource( 3 )
+
+[node name="enemy1" parent="." instance=ExtResource( 6 )]
+position = Vector2( -2077, 1022 )
+
+[node name="enemy2" parent="." instance=ExtResource( 6 )]
+position = Vector2( 1272, -552 )
+
+[node name="enemy3" parent="." instance=ExtResource( 6 )]
+position = Vector2( 1264, 1000 )
+
+[node name="Platform1" type="TileMap" parent="."]
+scale = Vector2( 5, 3 )
+tile_set = SubResource( 3 )
+collision_layer = 2
+collision_mask = 9
+format = 1
+tile_data = PoolIntArray( -131069, 0, 0, 131070, 0, 0, 458745, 0, 0, 393219, 0, 0 )
+
+[node name="Wall1" type="TileMap" parent="."]
+scale = Vector2( 5, 5 )
+z_index = -1
+tile_set = SubResource( 7 )
+collision_layer = 2
+format = 1
+tile_data = PoolIntArray( -65539, 0, 0, -3, 0, 0, 65533, 0, 0 )
+
+[node name="restart" type="Area2D" parent="."]
+position = Vector2( -2992, 2336 )
+collision_layer = 2
+script = ExtResource( 1 )
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="restart"]
+position = Vector2( 3169, -296 )
+shape = SubResource( 4 )
+
+[node name="pickup_doublejump" parent="." instance=ExtResource( 9 )]
+position = Vector2( -368, -180 )
+
+[node name="CanvasLayer" type="CanvasLayer" parent="."]
+
+[connection signal="picked" from="Player" to="pickup_doublejump" method="_on_Player_picked"]
+[connection signal="exitarea" from="restart" to="." method="_on_restart_exitarea"]
+[connection signal="abilityname" from="pickup_doublejump" to="Player" method="_on_pickup_doublejump_abilityname"]
+[connection signal="area_entered" from="pickup_doublejump" to="Player" method="_on_pickup_doublejump_area_entered"]
+[connection signal="area_exited" from="pickup_doublejump" to="Player" method="_on_pickup_doublejump_area_exited"]

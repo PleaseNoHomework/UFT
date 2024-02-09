@@ -1,0 +1,49 @@
+[gd_scene load_steps=6 format=2]
+
+[ext_resource path="res://images/Daco_4995026.png" type="Texture" id=1]
+[ext_resource path="res://scripts/enemy.gd" type="Script" id=2]
+[ext_resource path="res://scripts/enemy_scripts/enemy_finding.gd" type="Script" id=3]
+
+[sub_resource type="CircleShape2D" id=4]
+radius = 981.225
+
+[sub_resource type="RectangleShape2D" id=3]
+extents = Vector2( 73.5, 96.5 )
+
+[node name="enemy" type="KinematicBody2D"]
+collision_layer = 4
+collision_mask = 2
+script = ExtResource( 2 )
+__meta__ = {
+"_edit_group_": true
+}
+
+[node name="finding" type="Area2D" parent="."]
+modulate = Color( 0.729412, 0.133333, 0.133333, 1 )
+collision_layer = 256
+collision_mask = 0
+script = ExtResource( 3 )
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="finding"]
+modulate = Color( 0.721569, 0.054902, 0.054902, 1 )
+self_modulate = Color( 0.0588235, 0.215686, 0.631373, 1 )
+shape = SubResource( 4 )
+
+[node name="Sprite" type="Sprite" parent="."]
+scale = Vector2( 0.3, 0.3 )
+texture = ExtResource( 1 )
+
+[node name="hurt" type="CollisionShape2D" parent="."]
+position = Vector2( 3.5, 0.5 )
+shape = SubResource( 3 )
+
+[node name="Right" type="RayCast2D" parent="."]
+position = Vector2( 70, 0 )
+enabled = true
+cast_to = Vector2( 0, 100 )
+collision_mask = 2
+
+[node name="Left" type="RayCast2D" parent="."]
+position = Vector2( -70, 0 )
+cast_to = Vector2( 0, 100 )
+collision_mask = 2

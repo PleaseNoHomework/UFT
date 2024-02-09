@@ -1,0 +1,63 @@
+[gd_scene load_steps=11 format=2]
+
+[ext_resource path="res://images/enemys/spikeMan_walk1.png" type="Texture" id=1]
+[ext_resource path="res://images/enemys/spikeMan_stand.png" type="Texture" id=2]
+[ext_resource path="res://images/enemys/spikeMan_walk2.png" type="Texture" id=3]
+[ext_resource path="res://scripts/enemy_scripts/enemy_ground3.gd" type="Script" id=4]
+[ext_resource path="res://scripts/enemy_scripts/FindPlayer.gd" type="Script" id=5]
+[ext_resource path="res://scripts/enemy_scripts/MissPlayer.gd" type="Script" id=6]
+
+[sub_resource type="SpriteFrames" id=1]
+animations = [ {
+"frames": [ ExtResource( 2 ) ],
+"loop": true,
+"name": "Stop",
+"speed": 5.0
+}, {
+"frames": [ ExtResource( 1 ), ExtResource( 3 ) ],
+"loop": true,
+"name": "Walk",
+"speed": 2.5
+} ]
+
+[sub_resource type="RectangleShape2D" id=2]
+extents = Vector2( 45, 77.5 )
+
+[sub_resource type="RectangleShape2D" id=3]
+extents = Vector2( 605.5, 118 )
+
+[sub_resource type="RectangleShape2D" id=4]
+extents = Vector2( 1796, 244 )
+
+[node name="enemy_ground3" type="KinematicBody2D"]
+script = ExtResource( 4 )
+__meta__ = {
+"_edit_group_": true
+}
+
+[node name="enemy_animate" type="AnimatedSprite" parent="."]
+frames = SubResource( 1 )
+animation = "Stop"
+
+[node name="enemy_collision" type="CollisionShape2D" parent="."]
+position = Vector2( 0, -0.5 )
+shape = SubResource( 2 )
+
+[node name="checkplayer" type="Area2D" parent="."]
+collision_layer = 512
+script = ExtResource( 5 )
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="checkplayer"]
+position = Vector2( 636, 1 )
+shape = SubResource( 3 )
+
+[node name="missplayer" type="Area2D" parent="."]
+script = ExtResource( 6 )
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="missplayer"]
+shape = SubResource( 4 )
+
+[node name="checkplatform" type="RayCast2D" parent="."]
+enabled = true
+cast_to = Vector2( 10, 100 )
+collision_mask = 2

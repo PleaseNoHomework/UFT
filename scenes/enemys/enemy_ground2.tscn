@@ -1,0 +1,58 @@
+[gd_scene load_steps=10 format=2]
+
+[ext_resource path="res://images/enemys/spikeBall_2.png" type="Texture" id=1]
+[ext_resource path="res://images/enemys/spikeBall1.png" type="Texture" id=2]
+[ext_resource path="res://scripts/enemy_scripts/enemy_ground2.gd" type="Script" id=3]
+[ext_resource path="res://scripts/enemy_scripts/FindPlayer.gd" type="Script" id=4]
+[ext_resource path="res://scripts/enemy_scripts/MissPlayer.gd" type="Script" id=5]
+
+[sub_resource type="SpriteFrames" id=1]
+animations = [ {
+"frames": [ ExtResource( 2 ), ExtResource( 1 ) ],
+"loop": true,
+"name": "move",
+"speed": 5.0
+} ]
+
+[sub_resource type="CircleShape2D" id=2]
+radius = 73.8241
+
+[sub_resource type="RectangleShape2D" id=3]
+extents = Vector2( 521.5, 552 )
+
+[sub_resource type="CircleShape2D" id=4]
+radius = 1384.8
+
+[node name="enemy_ground2" type="KinematicBody2D"]
+collision_layer = 4
+collision_mask = 2
+script = ExtResource( 3 )
+__meta__ = {
+"_edit_group_": true
+}
+
+[node name="Animated" type="AnimatedSprite" parent="."]
+frames = SubResource( 1 )
+animation = "move"
+frame = 1
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="."]
+shape = SubResource( 2 )
+
+[node name="CheckPlatform" type="RayCast2D" parent="."]
+cast_to = Vector2( 10, 90 )
+
+[node name="FindPlayer" type="Area2D" parent="."]
+collision_layer = 4
+script = ExtResource( 4 )
+
+[node name="Range" type="CollisionShape2D" parent="FindPlayer"]
+position = Vector2( 511.5, -22 )
+shape = SubResource( 3 )
+
+[node name="MissPlayer" type="Area2D" parent="."]
+collision_layer = 4
+script = ExtResource( 5 )
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="MissPlayer"]
+shape = SubResource( 4 )
