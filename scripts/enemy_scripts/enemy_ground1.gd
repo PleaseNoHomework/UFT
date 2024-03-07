@@ -1,11 +1,10 @@
 extends "res://scripts/enemy_scripts/enemy_basic_parameter.gd"
 
-
 var changedirection = 2
 var timeflow = 0 
 var beforeruntimeflow = 0
 var runtimeflow = 0
-var runspeed = 500
+var runspeed = 200
 var temp = false
 
 func free_move(delta : float): #플레이어를 찾기전 자유롭게 움직인다.
@@ -42,20 +41,14 @@ func find_move(delta : float):
 				findplayer = false
 
 func enemyai(delta : float):
-	if HP <= 0:
-		isalive = false
-	
-	if !isalive:
-		queue_free()
+
+	if !findplayer:
+		free_move(delta)
 	else:
-		if !findplayer:
-			free_move(delta)
-		else:
-			find_move(delta)
+		find_move(delta)
 
 func _ready():
 	setHP(4)
-	setcheckplatform(Vector2(40, 50))
 	pass
 	
 func _process(delta):

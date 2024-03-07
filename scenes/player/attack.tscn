@@ -1,61 +1,146 @@
-[gd_scene load_steps=8 format=2]
+[gd_scene load_steps=16 format=2]
 
-[ext_resource path="res://images/bunny2_stand.png" type="Texture" id=1]
+[ext_resource path="res://images/character.png" type="Texture" id=1]
 [ext_resource path="res://scripts/attack.gd" type="Script" id=2]
-[ext_resource path="res://images/bunny1_stand.png" type="Texture" id=3]
 [ext_resource path="res://scripts/Hitbox.gd" type="Script" id=4]
 
 [sub_resource type="RectangleShape2D" id=1]
-extents = Vector2( 62, 102.5 )
+extents = Vector2( 23.5, 29.5 )
 
-[sub_resource type="SpriteFrames" id=2]
-animations = [ {
-"frames": [ ExtResource( 3 ) ],
-"loop": true,
-"name": "off_um",
-"speed": 5.0
-}, {
-"frames": [ ExtResource( 1 ) ],
-"loop": true,
-"name": "on_um",
-"speed": 5.0
-} ]
+[sub_resource type="RectangleShape2D" id=5]
+extents = Vector2( 24, 30 )
 
-[sub_resource type="CircleShape2D" id=3]
-radius = 214.597
+[sub_resource type="RectangleShape2D" id=4]
+extents = Vector2( 30.5, 12.25 )
+
+[sub_resource type="Animation" id=6]
+length = 0.001
+tracks/0/type = "value"
+tracks/0/path = NodePath("Sprite:frame")
+tracks/0/interp = 1
+tracks/0/loop_wrap = true
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/keys = {
+"times": PoolRealArray( 0 ),
+"transitions": PoolRealArray( 1 ),
+"update": 0,
+"values": [ 1 ]
+}
+
+[sub_resource type="Animation" id=7]
+resource_name = "idle"
+length = 1.4
+loop = true
+tracks/0/type = "value"
+tracks/0/path = NodePath("Sprite:frame")
+tracks/0/interp = 1
+tracks/0/loop_wrap = true
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/keys = {
+"times": PoolRealArray( 0, 0.7 ),
+"transitions": PoolRealArray( 1, 1 ),
+"update": 1,
+"values": [ 1, 0 ]
+}
+
+[sub_resource type="Animation" id=8]
+resource_name = "move"
+length = 0.8
+loop = true
+tracks/0/type = "value"
+tracks/0/path = NodePath("Sprite:frame")
+tracks/0/interp = 1
+tracks/0/loop_wrap = true
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/keys = {
+"times": PoolRealArray( 0, 0.2, 0.4, 0.6 ),
+"transitions": PoolRealArray( 1, 1, 1, 1 ),
+"update": 1,
+"values": [ 2, 3, 4, 3 ]
+}
+
+[sub_resource type="AnimationNodeAnimation" id=9]
+animation = "idle"
+
+[sub_resource type="AnimationNodeAnimation" id=10]
+animation = "move"
+
+[sub_resource type="AnimationNodeStateMachineTransition" id=11]
+
+[sub_resource type="AnimationNodeStateMachineTransition" id=12]
+
+[sub_resource type="AnimationNodeStateMachine" id=13]
+states/idle/node = SubResource( 9 )
+states/idle/position = Vector2( 198, 90 )
+states/move/node = SubResource( 10 )
+states/move/position = Vector2( 364, 90 )
+transitions = [ "idle", "move", SubResource( 11 ), "move", "idle", SubResource( 12 ) ]
+
+[sub_resource type="AnimationNodeStateMachinePlayback" id=14]
 
 [node name="Player" type="KinematicBody2D"]
-collision_mask = 257
+collision_mask = 2
 script = ExtResource( 2 )
 
-[node name="CollisionShape2D" type="CollisionShape2D" parent="."]
-position = Vector2( 0, -2.5 )
+[node name="Sprite" type="Sprite" parent="."]
+texture = ExtResource( 1 )
+hframes = 3
+vframes = 4
+frame = 1
+
+[node name="Player_Shape" type="CollisionShape2D" parent="."]
+position = Vector2( -0.5, 1.5 )
 shape = SubResource( 1 )
 
-[node name="AnimatedSprite" type="AnimatedSprite" parent="."]
-frames = SubResource( 2 )
-animation = "off_um"
-
 [node name="Hitbox" type="Area2D" parent="."]
+collision_layer = 1024
+collision_mask = 8
 script = ExtResource( 4 )
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="Hitbox"]
-shape = SubResource( 3 )
+position = Vector2( 0, 2 )
+shape = SubResource( 5 )
 
 [node name="CheckWallUp" type="RayCast2D" parent="."]
-position = Vector2( 0, -50 )
+position = Vector2( 25, -11 )
 enabled = true
-cast_to = Vector2( 80, 0 )
+cast_to = Vector2( 30, 0 )
 collision_mask = 2
 
 [node name="CheckWallDown" type="RayCast2D" parent="."]
-position = Vector2( 0, 90 )
+position = Vector2( 25, 14 )
 enabled = true
-cast_to = Vector2( 80, 0 )
+cast_to = Vector2( 30, 0 )
 collision_mask = 2
 
 [node name="CheckPlatform" type="RayCast2D" parent="."]
-position = Vector2( 0, -2.5 )
+position = Vector2( -28, 39 )
 enabled = true
-cast_to = Vector2( 0, 120 )
-collision_mask = 2
+cast_to = Vector2( 60, 0 )
+collision_mask = 130
+
+[node name="AttackBox" type="Area2D" parent="."]
+position = Vector2( 0, 4 )
+collision_layer = 32
+collision_mask = 8
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="AttackBox"]
+position = Vector2( 55, -2 )
+shape = SubResource( 4 )
+
+[node name="AnimationPlayer" type="AnimationPlayer" parent="."]
+anims/RESET = SubResource( 6 )
+anims/idle = SubResource( 7 )
+anims/move = SubResource( 8 )
+
+[node name="AnimationTree" type="AnimationTree" parent="."]
+tree_root = SubResource( 13 )
+anim_player = NodePath("../AnimationPlayer")
+active = true
+parameters/playback = SubResource( 14 )
+
+[connection signal="area_entered" from="Hitbox" to="." method="_on_Hitbox_area_entered"]
+[connection signal="area_entered" from="AttackBox" to="." method="_on_AttackBox_area_entered"]

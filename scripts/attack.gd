@@ -3,49 +3,73 @@ extends KinematicBody2D
 var dash_duration = 0.2
 var now_dash_duration = 0
 var attack_duration = 0.4
-var jump_duration = 0.35
+
+
 var now_jump_duration = 0
-var hoveringtime = 0.3
-var starthoveringtime = 0
+var jump_duration = 0.4
+
 var now_wall_jump_duration = 0
 var wall_jump_duration = 0.3
 
-var HP : float
-var minpos = 0 #jump gap, falling damage
-var maxpos = 0
-var speed : float
+var now_hitted_duration = 0
+var hitted_duration = 0.25
+var infinitetime = 0
+var infinitystart = false
+var hit_left : bool = false
+var hit_start = false
+
 var velocity : Vector2
 
-var originalgravity = 1200
-var gravity = 600 #original gravity
+var gravity = 500#original gravity
 var slowgravity = 300 #falling with umbrella
+var wall_gravity = 100
 
-
-var wall_gravity = 400
-export var jumppower = -1200
+var canjump = false
+var jumpstart = false
 var isjumping = false
+var isfalling = false
 var isslowjumping = false
-
-var firstjumping = false
-var secondjumping = false
-var falling = false
 var walljumping = false
 
-var exitjumping = false
+var attackpos = false
+
+
+var inwind = false
 
 var dashcount = 1
-var jumpcount = 2
+var jumpcount = 1
 var walljumpcount = 1
 
 var canpickup = false
 
 
-var attack_sc = preload("res://scenes/player/numberone.tscn")
-var parry_sc = preload("res://scenes/player/parring.tscn")
+#var attack_sc = preload("res://scenes/player/numberone.tscn")
+#var parry_sc = preload("res://scenes/player/parring.tscn")
+
+var player_shape : CollisionShape2D
 var checkwallup : RayCast2D
 var checkwalldown : RayCast2D
 var checkplatform : RayCast2D
+var attackbox : Area2D
+var state_machine
 var checkleft = false
+
+enum status {
+	DEFAULT,
+	DASH,
+	HITTED,
+	SAVE
+}
+
+enum jumpstatus {
+	DEFAULT,
+	WALL,
+	WIND
+}
+
+var stat = status.DEFAULT
+var jumpstat = jumpstatus.DEFAULT
+
 
 var ismove = false
 var isLeft = false
@@ -59,129 +83,121 @@ var state = "off_um"
 var iswalljump = false #ability walljumping
 var isslowum = true #ability slowdescent
 
-signal picked
+var iswalling : bool
+var finishwalling : bool
 
+
+
+signal picked
+signal down_platform_enabled
 
 func isleftfunc():
 	if isLeft:
-		checkwallup.cast_to = Vector2(-80, 20)
+		checkwallup.cast_to = Vector2(-80, 0)
+		checkwalldown.cast_to = Vector2(-80, 0)
+		attackbox.rotation_degrees = 180
 	else:
-		checkwallup.cast_to = Vector2(80, 20)
-						
-func attack():
-	if Input.is_action_just_pressed("attacks"):
-		var attack_ins = attack_sc.instance()
-		if isLeft:
-			attack_ins.position = Vector2(-100, 0)
-		else:
-			attack_ins.position = Vector2(100, 0)
-		add_child(attack_ins)
+		checkwallup.cast_to = Vector2(80, 0)
+		checkwalldown.cast_to = Vector2(80, 0)
+		attackbox.rotation_degrees = 0
+	
+			
+func attack(delta):
+	if Input.is_action_just_pressed("attacks") and !isattack:
+		isattack = true
 		
-func parry():
-	if Input.is_action_just_pressed("parry"):
-		var parry_ins = parry_sc.instance()
-		add_child(parry_ins)
-						
+		
+		
+	if isattack:
+		attackbox.monitoring = true
+		pass
+		
+	else:
+		attackbox.monitoring = false
+				
 func move(delta : float):
 	
 	if Input.is_action_just_released("ui_right") or Input.is_action_just_released("ui_left"):
 		velocity.x = 0
+		state_machine.travel("move")
 	
 	if Input.is_action_pressed("ui_right"):
 		velocity.x = Global.speed
 		isLeft = false
-	if Input.is_action_pressed("ui_left"):
+	elif Input.is_action_pressed("ui_left"):
 		velocity.x = -Global.speed
 		isLeft = true
-	
-	if !isjumping:
-		starthoveringtime += delta
-		if isslowjumping and starthoveringtime > hoveringtime:
-			velocity.y = 300
-		elif velocity. y < originalgravity:
-			velocity.y += 2000 * delta
-		else:
-			velocity.y = originalgravity
+		
+	else:
+		velocity.x = 0
 
 
 	velocity = move_and_slide(velocity, Vector2.UP)
 
 func jump(delta : float):
-	if Global.isJump:
-		slowdescent()
-		if is_on_floor():
-			isjumping = false
-			falling = false
-			now_jump_duration = 0
-			jumpcount = 2
-			dashcount = 1
-			
+	if checkplatform.is_colliding():
+		set_collision_mask_bit(7, true)
+		canjump = true
+	else:
+		set_collision_mask_bit(7, false)
+		canjump = false
 		
-		if Input.is_action_just_pressed("ui_up") and jumpcount > 0:
-			starthoveringtime = 0
-			isjumping = true
-			jumpcount -= 1
-			now_jump_duration = 0
+	if canjump and Input.is_action_just_pressed("ui_up"):
+		now_jump_duration = 0
+		dashcount = 1
+		isjumping = true
+
+	if velocity.y < gravity:
+		if velocity.y < 0:
+			velocity.y += gravity * delta * 9
+		else:
+			velocity.y += gravity * delta * 3
+		
+
 		if Input.is_action_pressed("ui_up") and now_jump_duration < jump_duration and isjumping:
-			velocity.y = jumppower
+			velocity.y = Global.jumpPower
 			now_jump_duration += delta
-		if (Input.is_action_just_released("ui_up") or now_jump_duration >= jump_duration) and isjumping:
-			isjumping = false
-			velocity.y = -300
+		
+		if Input.is_action_just_released("ui_up"):
+			now_jump_duration = jump_duration
+			
+		if now_jump_duration >= jump_duration: #jumping finished
+			if Global.isSlowDescent and Input.is_action_pressed("ui_up") and velocity.y > gravity / 3: #slowdesecent
+				velocity.y = gravity / 3
+
 
 func dash(delta : float):
-	if Input.is_action_just_pressed("dash") and dashcount > 0:
-		ismove = false
-		isdash = true
-		
-	if isdash:
-		if isLeft:
-			velocity = Vector2(-speed * 4, 0)
-		else:
-			velocity = Vector2(speed * 4, 0)
-			
-		move_and_slide(velocity)
-		now_dash_duration += delta
-		
-		if now_dash_duration >= dash_duration:
-			dashcount -= 1
-			now_dash_duration = 0
-			velocity = Vector2(0,0)
-			if not is_on_floor():
-				isjumping = false
-			isdash = false
-			ismove = true
 
-
-func slowdescent():
-	
-	if isslowum == true and Input.is_action_pressed("ui_up"):
-		isslowjumping = true
+	if isLeft:
+		velocity = Vector2(-Global.speed * 2, 0)
 	else:
-		isslowjumping = false
+		velocity = Vector2(Global.speed * 2, 0)
+		
+	move_and_slide(velocity)
+	now_dash_duration += delta
+	
+	if now_dash_duration >= dash_duration:
+		now_dash_duration = 0
+		velocity = Vector2(0,0)
+		stat = status.DEFAULT
+		now_jump_duration = jump_duration
+
 
 
 func walljump(delta : float):
-	if checkwallup.is_colliding() and not checkplatform.is_colliding():
-		iswall = true
-		isjumping = false
-	else:
-		iswall = false
+
+
 		
-	if iswall and !walljumping:
+	if jumpstat == jumpstatus.WALL:
 		walljumpcount = 1
 		if velocity.y < 0:
 			velocity.y = 0
-		elif velocity.y <= 300:
-			velocity.y += 300 * delta
+		elif velocity.y <= wall_gravity:
+			velocity.y += wall_gravity * delta
 		else:
-			velocity.y = 300
-		move_and_slide(velocity)
-		if isLeft and Input.is_action_just_pressed("ui_right"):
-			isLeft = false
-		elif !isLeft and Input.is_action_just_pressed("ui_left"):
-			isLeft = true
-			
+			velocity.y = wall_gravity
+		
+		
 		if walljumpcount > 0 and Input.is_action_just_pressed("ui_up"):
 			walljumpcount -= 1
 			print("wall jummping!")
@@ -190,21 +206,36 @@ func walljump(delta : float):
 			
 	if walljumping:
 		if isLeft:
-			velocity = Vector2(400, -800)
+			velocity = Vector2(200, -400)
 		else:
-			velocity = Vector2(-400, -800)
+			velocity = Vector2(-200, -400)
 			
-		move_and_slide(velocity)
+		
 		
 		now_wall_jump_duration += delta
 		if now_wall_jump_duration >= wall_jump_duration:
 			print("finished walljumping!")
 			isLeft = !isLeft
 			walljumping = false
+			jumpstat = jumpstatus.DEFAULT
 			now_wall_jump_duration = 0
 			velocity = Vector2(0, -300)
-		
+	move_and_slide(velocity)	
 
+func windascent(delta : float):
+	if Input.is_action_pressed("ui_up"):
+		if velocity.y > 0:
+			velocity.y = 0
+		
+		elif velocity.y > Global.jumpPower * 0.7:
+			velocity.y += Global.jumpPower * delta * 3
+			
+	else:
+		if velocity.y < gravity:
+			if velocity.y < 0:
+				velocity.y += gravity * delta * 9
+			else:
+				velocity.y += gravity * delta * 3
 func checkumbrella():
 	if state == "off_um":
 		isumbrella = false
@@ -216,15 +247,37 @@ func checkumbrella():
 		$AnimatedSprite.play("on_um")
 		
 
+func hitted(delta):
+	if !hit_start:
+		hit_left = isLeft
+		hit_start = true
+		now_hitted_duration = 0
+	else:
+		now_hitted_duration += delta
+		var x = 300 if isLeft else -300
+		move_and_slide(Vector2(x, -100))
+		if now_hitted_duration >= hitted_duration:
+			print("finish hit")
+			now_hitted_duration = 0
+			hit_start = false
+			stat = status.DEFAULT
+
+	
+
+
 func _ready():
-	HP = Global.HP
-	speed = Global.speed
 	global_position = Global.startPos
+	print(global_position)
 	
-	
+	player_shape = $Player_Shape
 	checkwallup = $CheckWallUp
 	checkwalldown = $CheckWallDown
 	checkplatform = $CheckPlatform
+	attackbox = $AttackBox
+	state_machine = $AnimationTree.get("parameters/playback")
+	print(state_machine)
+	
+	attackbox.monitoring = false
 	isumbrella = false
 	ismove = true
 	velocity = Vector2(0,0)
@@ -232,31 +285,61 @@ func _ready():
 
 
 
-
 func _physics_process(delta):
 	isleftfunc()
-	parry()
+	iswalling = (isLeft and Input.is_action_pressed("ui_left")) or (!isLeft and Input.is_action_pressed("ui_right"))
+	finishwalling = (isLeft and Input.is_action_just_pressed("ui_right")) or (!isLeft and Input.is_action_just_pressed("ui_left")) or checkplatform.is_colliding() and jumpstat == jumpstatus.WALL
+	if infinitystart:
+		infinitetime += delta
+		if infinitetime >= 1:
+			infinitystart = false
+			infinitetime = 0
+			print("finish infinite")
+	if inwind:
+		jumpstat = jumpstatus.WIND
+	else:
+		
+		if checkwallup.is_colliding() and not checkplatform.is_colliding() and iswalling and jumpstat != jumpstatus.WALL: #change in wall
+			jumpstat = jumpstatus.WALL
+
+		elif not walljumping and jumpstat == jumpstatus.WALL:
+			pass
+		if finishwalling and jumpstat == jumpstatus.WALL:
+			jumpstat = jumpstatus.DEFAULT
+			isLeft = !isLeft				
+				
+		if not checkwallup.is_colliding() and not walljumping:
+			jumpstat = jumpstatus.DEFAULT
+		
+			
+	if Global.canmove:
+		match stat:
+			status.DEFAULT:			
+				match jumpstat:
+					jumpstatus.DEFAULT:
+						move(delta)
+						jump(delta)
+					jumpstatus.WALL:
+						walljump(delta)
+						
+					jumpstatus.WIND:
+						move(delta)
+						windascent(delta)
+			status.DASH:
+				dash(delta)
+			status.HITTED:
+				hitted(delta)
+				pass
+			status.SAVE:
+				pass
+				
+		if Input.is_action_just_pressed("dash") and dashcount > 0:
+			stat = status.DASH
+			dashcount -= 1
+		
 	
-	dash(delta)
-	if !iswall and !walljumping and ismove:
-		move(delta)
-		jump(delta)
-	if state == "off_um":
-		if !isattack:
-			attack()
-	if Input.is_action_just_pressed("umbrella"):
-		if state == "off_um" and isattack == false:
-			state = "on_um"
-		else:
-			state = "off_um"
-	checkumbrella()
-
-	if iswalljump:
-		walljump(delta)
-	if canpickup and Input.is_action_just_pressed("pickup"):
-		print("picked!")
-		emit_signal("picked")
-
+	attack(delta)
+	
 
 
 func _on_pickup_doublejump_area_entered(area):
@@ -271,4 +354,36 @@ func _on_pickup_doublejump_abilityname(ability_name):
 	if ability_name == "walljump":
 		iswalljump = true	
 	canpickup = false
+
+
+func _on_SavePos_area_entered(area):
+	print("agga")
+	Global.isSave = true
+
+
+func _on_SavePos_area_exited(area):
+	print("exit")
+	Global.isSave = true
+
+
+func _on_AttackBox_area_entered(area):
+	if attack_duration <= 0.2:
+		pass
+
+
+func _on_AscentArea_area_entered(area):
+	jumpstat = jumpstatus.WIND
+	inwind = true
+	print(area.name)
+
+
+func _on_AscentArea_area_exited(area):
+	print("finish ascent!")
+	inwind = false
+
+
+func _on_Hitbox_area_entered(area):
+	if !infinitystart:
+		stat = status.HITTED
+		infinitystart = true
 

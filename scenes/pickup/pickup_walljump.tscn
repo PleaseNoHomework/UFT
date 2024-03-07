@@ -1,0 +1,35 @@
+[gd_scene load_steps=5 format=2]
+
+[ext_resource path="res://images/pickup_and_save/save_onum.png" type="Texture" id=1]
+[ext_resource path="res://images/pickup_and_save/save_offum.png" type="Texture" id=2]
+
+[sub_resource type="SpriteFrames" id=2]
+animations = [ {
+"frames": [ ExtResource( 2 ) ],
+"loop": true,
+"name": "save_offum",
+"speed": 5.0
+}, {
+"frames": [ ExtResource( 1 ) ],
+"loop": true,
+"name": "save_onum",
+"speed": 5.0
+} ]
+
+[sub_resource type="RectangleShape2D" id=1]
+extents = Vector2( 37.5455, 17.6425 )
+
+[node name="pickup_walljump" type="AnimatedSprite"]
+position = Vector2( -4, -166 )
+scale = Vector2( 2.75, 2.74219 )
+frames = SubResource( 2 )
+animation = "save_onum"
+
+[node name="Area2D" type="Area2D" parent="."]
+position = Vector2( 0, -5.10542 )
+collision_layer = 512
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Area2D"]
+position = Vector2( -0.363636, 51.0541 )
+scale = Vector2( 1, 1 )
+shape = SubResource( 1 )
